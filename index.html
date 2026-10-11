@@ -222,6 +222,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 120px;
         }
 
         svg { max-width: 100%; height: auto; }
@@ -307,7 +308,6 @@
     let html5QrcodeScanner = null;
     let currentBarcodeValue = "";
 
-    // WebAudio Bip Sesi
     function playBeep() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -327,7 +327,6 @@
         }
     }
 
-    // Google Sheets Canlı CSV Çekme
     fetch(sheetCsvUrl)
         .then(res => res.text())
         .then(csvText => {
@@ -360,7 +359,6 @@
             statusDiv.className = "status-badge error";
         });
 
-    // Arama Fonksiyonu (Hem Son 5 Hane Hem İsim İle)
     function onSearch() {
         const query = document.getElementById("searchInput").value.trim().toLowerCase();
         const listDiv = document.getElementById("productList");
@@ -395,7 +393,6 @@
         if (matches.length === 1) {
             renderBarcode(matches[0]);
         } else if (matches.length > 1) {
-            // İlk 20 sonucu göster (performans için)
             matches.slice(0, 20).forEach(item => {
                 const card = document.createElement("div");
                 card.className = "product-card";
@@ -412,7 +409,7 @@
         }
     }
 
-    // Barkod Çizme (Terminalin algılaması için başa/sona * eklenir)
+    // Barkod Çizme Fonksiyonu
     function renderBarcode(item) {
         playBeep();
         document.getElementById("productList").innerHTML = "";
@@ -421,24 +418,36 @@
 
         currentBarcodeValue = item.activeBarcode;
 
-        // El terminalinin okuması için fiziki baş/son * karakteri eklemesi yapılır
-        const formattedBarcode = `*${item.activeBarcode}*`;
+        // Barkod değerini temizle
+        let cleanBarcode = String(item.activeBarcode).trim();
 
-        JsBarcode("#barcode", formattedBarcode, {
-            format: "CODE39",
-            width: 2.2,
-            height: 110,
-            displayValue: true,
-            fontOptions: "bold"
-        });
+        try {
+            // Otomatik çizim (CODE128 veya EAN/UPC otomatik algılanır)
+            JsBarcode("#barcode", cleanBarcode, {
+                format: "CODE128",
+                width: 2.2,
+                height: 110,
+                displayValue: true,
+                fontOptions: "bold"
+            });
+        } catch (e) {
+            // Hata durumunda (sayısal EAN denemesi)
+            try {
+                JsBarcode("#barcode", cleanBarcode, {
+                    width: 2.2,
+                    height: 110,
+                    displayValue: true
+                });
+            } catch(err) {
+                console.error("Barkod çizilemedi", err);
+            }
+        }
 
-        // Kamera açıksa kapat
         if (html5QrcodeScanner) {
             stopCamera();
         }
     }
 
-    // Kamera Tarama Toggle
     function toggleCamera() {
         const readerDiv = document.getElementById("reader");
         if (readerDiv.style.display === "block") {
@@ -470,7 +479,6 @@
         }
     }
 
-    // Barkod Kopyalama
     function copyBarcode() {
         if (!currentBarcodeValue) return;
         navigator.clipboard.writeText(currentBarcodeValue).then(() => {
@@ -478,7 +486,6 @@
         });
     }
 
-    // Temizleme / Reset
     function resetSearch() {
         const input = document.getElementById("searchInput");
         input.value = "";
@@ -487,7 +494,6 @@
         input.focus();
     }
 
-    // Gece Modu Toggle
     function toggleTheme() {
         document.body.classList.toggle("dark-mode");
     }
