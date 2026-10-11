@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Saha Barkod Okutma</title>
-    <!-- Barkod Çizim & CSV Okuyucu Kütüphaneler -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <style>
@@ -38,18 +37,30 @@
 </div>
 
 <script>
-    // Görseldeki Google Sheets CSV bağlantısı yerleştirildi:
     const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuRh11OY-0Eipupbd3WU4aW73pVOglkOy6pgalD81j7Yr6NY5zkFG9g1ceQJAje6xzkVLZhlwCIfm_3/pub?output=csv";
 
     let db = [];
 
-    // PapaParse kütüphanesi ile CSV verisini canlı olarak okuma
     Papa.parse(sheetCsvUrl, {
         download: true,
-        header: true,
+        header: false, // Header bağımlılığı kaldırıldı
         skipEmptyLines: true,
         complete: function(results) {
-            db = results.data;
+            const rows = results.data;
+            db = [];
+
+            // İlk satır başlık olduğu için 1. satırdan başla
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length >= 3) {
+                    db.push({
+                        sku_id: row[0] ? row[0].trim() : '',
+                        product_name: row[1] ? row[1].trim() : 'İsimsiz Ürün',
+                        barcodes: row[2] ? row[2].trim() : ''
+                    });
+                }
+            }
+
             const statusDiv = document.getElementById("status");
             statusDiv.innerText = `✅ ${db.length} Ürün Canlı Yüklendi!`;
             statusDiv.style.color = "#28a745";
@@ -82,8 +93,8 @@
             barcodeList.forEach(singleBarcode => {
                 if (singleBarcode.endsWith(query)) {
                     matches.push({
-                        sku_id: item.sku_id || '',
-                        product_name: item.product_name || 'İsimsiz Ürün',
+                        sku_id: item.sku_id,
+                        product_name: item.product_name,
                         activeBarcode: singleBarcode
                     });
                 }
