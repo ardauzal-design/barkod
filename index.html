@@ -3,184 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saha Barkod Arama</title>
-    <!-- Barkod Çizim & CSV Okuyucu Kütüphaneler -->
+    <title>Saha Barkod Sistemi - Yemeksepeti Partner</title>
+    <!-- JsBarcode & PapaParse & HTML5-QRCode Kütüphaneleri -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-body: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+            --ys-primary: #ea004b;
+            --ys-primary-hover: #c90040;
+            --ys-bg: #f8fafc;
+            --ys-card: #ffffff;
+            --ys-text: #0f172a;
+            --ys-muted: #64748b;
+            --ys-border: #e2e8f0;
         }
 
-        * { 
-            box-sizing: border-box; 
+        body.dark-mode {
+            --ys-bg: #0f172a;
+            --ys-card: #1e293b;
+            --ys-text: #f8fafc;
+            --ys-muted: #94a3b8;
+            --ys-border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
         }
 
-        body { 
-            background-color: var(--bg-body); 
-            color: var(--text-main);
-            padding: 20px 12px;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
+        body {
+            background-color: var(--ys-bg);
+            color: var(--ys-text);
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
+            transition: background-color 0.2s;
         }
 
-        .container { 
-            width: 100%; 
-            max-width: 500px; 
+        .container {
+            width: 100%;
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
+        /* Header / Logo */
         .app-header {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            color: white;
-            padding: 20px;
+            background: var(--ys-card);
+            border: 1px solid var(--ys-border);
+            padding: 16px 20px;
             border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
         }
 
-        .app-title {
-            font-size: 20px;
-            font-weight: 700;
+        .brand-logo {
+            height: 32px;
+            object-fit: contain;
         }
 
-        .status-badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 6px 14px;
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-theme {
+            background: var(--ys-bg);
+            border: 1px solid var(--ys-border);
+            color: var(--ys-text);
+            padding: 8px 12px;
             border-radius: 20px;
+            cursor: pointer;
             font-size: 13px;
             font-weight: 600;
-            margin-top: 10px;
-            color: #38bdf8;
         }
 
-        .status-badge.success { color: #4ade80; }
-        .status-badge.error { color: #f87171; }
+        /* Durum Rozeti */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: var(--ys-muted);
+        }
+        .status-badge.success { background: #dcfce7; color: #15803d; }
+        .status-badge.error { background: #fee2e2; color: #b91c1c; }
 
+        /* Arama & Kamera Kartı */
         .search-card {
-            background: var(--card-bg);
+            background: var(--ys-card);
             padding: 16px;
             border-radius: 16px;
-            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--ys-border);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .search-box { 
-            width: 100%; 
-            padding: 16px; 
-            font-size: 22px; 
-            font-weight: 700; 
-            text-align: center; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 12px; 
-            outline: none; 
-            background: #f8fafc;
+        .search-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            border: 2px solid var(--ys-border);
+            border-radius: 12px;
+            outline: none;
+            background: var(--ys-bg);
+            color: var(--ys-text);
+            transition: border-color 0.2s;
         }
 
         .search-box:focus {
-            border-color: var(--primary);
-            background: #ffffff;
+            border-color: var(--ys-primary);
         }
 
-        .search-box::-webkit-outer-spin-button,
-        .search-box::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        .btn-cam {
+            background: var(--ys-primary);
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        .btn-cam:hover { background: var(--ys-primary-hover); }
+
+        /* Kamera Alanı */
+        #reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+            border: 2px solid var(--ys-primary);
+        }
+
+        /* Ürün Liste Kartları */
         .product-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        .product-card { 
-            background: var(--card-bg); 
-            padding: 16px; 
-            border-radius: 14px; 
-            border: 1px solid #e2e8f0; 
-            cursor: pointer; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-
-        .product-card:hover { 
-            border-color: var(--primary);
-            background-color: #eff6ff; 
-        }
-
-        .product-name { font-weight: 600; font-size: 15px; color: var(--text-main); }
-        .product-sku { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-        
-        .select-badge { 
-            background: var(--primary); 
-            color: white; 
-            padding: 8px 14px; 
-            border-radius: 8px; 
-            font-size: 13px; 
-            font-weight: 700; 
-        }
-
-        #barcode-display { 
-            display: none; 
-            background: var(--card-bg); 
-            padding: 24px 16px; 
-            border-radius: 16px; 
-            text-align: center; 
-            border: 1px solid #e2e8f0; 
-        }
-
-        .active-title { 
-            font-size: 17px; 
-            font-weight: 700; 
-            color: var(--text-main); 
-            margin-bottom: 16px; 
-        }
-
-        .barcode-container {
-            background: #ffffff;
-            padding: 16px 8px;
+        .product-card {
+            background: var(--ys-card);
+            padding: 14px 16px;
             border-radius: 12px;
-            border: 1px dashed #cbd5e1;
-            display: inline-block;
-            width: 100%;
+            border: 1px solid var(--ys-border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .product-card:hover {
+            border-color: var(--ys-primary);
+            background: var(--ys-bg);
+        }
+
+        .product-name { font-weight: 700; font-size: 15px; color: var(--ys-text); }
+        .product-sku { font-size: 12px; color: var(--ys-muted); margin-top: 4px; }
+
+        .btn-select {
+            background: var(--ys-primary);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        /* Barkod Gösterim Ekrana */
+        #barcode-display {
+            display: none;
+            background: var(--ys-card);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--ys-border);
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);
+        }
+
+        .active-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ys-text);
+            margin-bottom: 14px;
+        }
+
+        .barcode-box {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px dashed var(--ys-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         svg { max-width: 100%; height: auto; }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--ys-border);
+            background: var(--ys-bg);
+            color: var(--ys-text);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .btn-action:hover { background: var(--ys-border); }
+        .btn-action.primary { background: var(--ys-primary); color: white; border: none; }
+        .btn-action.primary:hover { background: var(--ys-primary-hover); }
+
+        @media print {
+            body * { visibility: hidden; }
+            #barcode-display, #barcode-display * { visibility: visible; }
+            #barcode-display { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
+            .action-btns { display: none; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- Header / Logo -->
     <div class="app-header">
-        <div class="app-title">📦 Saha Barkod Sistemi</div>
-        <div id="status" class="status-badge">🔄 Canlı Veri Yükleniyor...</div>
+        <img class="brand-logo" src="https://lh3.googleusercontent.com/2pv3nFogNN8hnYzMA4QeKE-Rj8mC7YlQPJOxuYJy-EwrVUHuqG-CuF5KaPz0seyugb1EVGmGEEe0JHucp0dDGgVyEvk=s60" alt="Yemeksepeti Partner">
+        <div class="header-actions">
+            <button class="btn-theme" onclick="toggleTheme()">🌙 / ☀️</button>
+        </div>
     </div>
 
-    <div class="search-card">
-        <input type="number" id="searchInput" class="search-box" placeholder="Son 5 Haneyi Girin" autofocus oninput="onSearch()" disabled>
+    <!-- Durum Rozeti -->
+    <div style="text-align: center;">
+        <span id="status" class="status-badge">🔄 Canlı Veri Çekiliyor...</span>
     </div>
-    
+
+    <!-- Arama Kutusu & Kamera Butonu -->
+    <div class="search-card">
+        <div class="search-input-group">
+            <input type="text" id="searchInput" class="search-box" placeholder="Son 5 Hane veya Ürün Adı..." autofocus oninput="onSearch()" disabled>
+            <button class="btn-cam" onclick="toggleCamera()" title="Kamera ile Tara">📷</button>
+        </div>
+        <div id="reader"></div>
+    </div>
+
+    <!-- Ürün Arama Sonuçları -->
     <div id="productList" class="product-list"></div>
 
+    <!-- Barkod Gösterim Kartı -->
     <div id="barcode-display">
         <div id="selectedProductName" class="active-title"></div>
-        <div class="barcode-container">
+        <div class="barcode-box">
             <svg id="barcode"></svg>
+        </div>
+        
+        <div class="action-btns">
+            <button class="btn-action" onclick="copyBarcode()">📋 Kopyala</button>
+            <button class="btn-action" onclick="window.print()">🖨️ Yazdır</button>
+            <button class="btn-action primary" onclick="resetSearch()">🔍 Yeni Arama</button>
         </div>
     </div>
 </div>
@@ -189,9 +304,32 @@
     const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/1OnCqXlcTSyeI4dzxOFq1JrS4SHKxIY6eHGvcz-VWZWA/export?format=csv";
 
     let db = [];
+    let html5QrcodeScanner = null;
+    let currentBarcodeValue = "";
 
+    // WebAudio Bip Sesi
+    function playBeep() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.15);
+        } catch (e) {}
+
+        if (navigator.vibrate) {
+            navigator.vibrate(100);
+        }
+    }
+
+    // Google Sheets Canlı CSV Çekme
     fetch(sheetCsvUrl)
-        .then(response => response.text())
+        .then(res => res.text())
         .then(csvText => {
             const results = Papa.parse(csvText, { skipEmptyLines: true });
             const rows = results.data;
@@ -218,19 +356,20 @@
         })
         .catch(err => {
             const statusDiv = document.getElementById("status");
-            statusDiv.innerText = "❌ Bağlantı Hatası";
+            statusDiv.innerText = "❌ Veri Çekilemedi";
             statusDiv.className = "status-badge error";
         });
 
+    // Arama Fonksiyonu (Hem Son 5 Hane Hem İsim İle)
     function onSearch() {
-        const query = document.getElementById("searchInput").value.trim();
+        const query = document.getElementById("searchInput").value.trim().toLowerCase();
         const listDiv = document.getElementById("productList");
         const barcodeDisplay = document.getElementById("barcode-display");
 
         listDiv.innerHTML = "";
         barcodeDisplay.style.display = "none";
 
-        if (query.length < 3) return;
+        if (query.length < 2) return;
 
         let matches = [];
 
@@ -240,7 +379,10 @@
             const barcodeList = String(item.barcodes).split(',').map(b => b.trim());
 
             barcodeList.forEach(singleBarcode => {
-                if (singleBarcode.endsWith(query)) {
+                const matchesBarcode = singleBarcode.toLowerCase().endsWith(query);
+                const matchesName = item.product_name.toLowerCase().includes(query);
+
+                if (matchesBarcode || matchesName) {
                     matches.push({
                         sku_id: item.sku_id,
                         product_name: item.product_name,
@@ -253,7 +395,8 @@
         if (matches.length === 1) {
             renderBarcode(matches[0]);
         } else if (matches.length > 1) {
-            matches.forEach(item => {
+            // İlk 20 sonucu göster (performans için)
+            matches.slice(0, 20).forEach(item => {
                 const card = document.createElement("div");
                 card.className = "product-card";
                 card.onclick = () => renderBarcode(item);
@@ -262,25 +405,91 @@
                         <div class="product-name">${item.product_name}</div>
                         <div class="product-sku">SKU: ${item.sku_id} | Barkod: ${item.activeBarcode}</div>
                     </div>
-                    <div class="select-badge">SEÇ</div>
+                    <div class="btn-select">SEÇ</div>
                 `;
                 listDiv.appendChild(card);
             });
         }
     }
 
+    // Barkod Çizme (Terminalin algılaması için başa/sona * eklenir)
     function renderBarcode(item) {
+        playBeep();
         document.getElementById("productList").innerHTML = "";
         document.getElementById("selectedProductName").innerText = item.product_name;
         document.getElementById("barcode-display").style.display = "block";
 
-        JsBarcode("#barcode", item.activeBarcode, {
+        currentBarcodeValue = item.activeBarcode;
+
+        // El terminalinin okuması için fiziki baş/son * karakteri eklemesi yapılır
+        const formattedBarcode = `*${item.activeBarcode}*`;
+
+        JsBarcode("#barcode", formattedBarcode, {
             format: "CODE39",
             width: 2.2,
             height: 110,
             displayValue: true,
             fontOptions: "bold"
         });
+
+        // Kamera açıksa kapat
+        if (html5QrcodeScanner) {
+            stopCamera();
+        }
+    }
+
+    // Kamera Tarama Toggle
+    function toggleCamera() {
+        const readerDiv = document.getElementById("reader");
+        if (readerDiv.style.display === "block") {
+            stopCamera();
+        } else {
+            readerDiv.style.display = "block";
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    document.getElementById("searchInput").value = decodedText;
+                    onSearch();
+                    stopCamera();
+                },
+                () => {}
+            );
+        }
+    }
+
+    function stopCamera() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById("reader").style.display = "none";
+                html5QrcodeScanner = null;
+            }).catch(() => {
+                document.getElementById("reader").style.display = "none";
+            });
+        }
+    }
+
+    // Barkod Kopyalama
+    function copyBarcode() {
+        if (!currentBarcodeValue) return;
+        navigator.clipboard.writeText(currentBarcodeValue).then(() => {
+            alert("Barkod kopyalandı: " + currentBarcodeValue);
+        });
+    }
+
+    // Temizleme / Reset
+    function resetSearch() {
+        const input = document.getElementById("searchInput");
+        input.value = "";
+        document.getElementById("productList").innerHTML = "";
+        document.getElementById("barcode-display").style.display = "none";
+        input.focus();
+    }
+
+    // Gece Modu Toggle
+    function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
     }
 </script>
 
