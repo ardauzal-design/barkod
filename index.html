@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saha Barkod Sistemi - Yemeksepeti Partner</title>
+    <title>Saha Barkod Sistemi - Yemeksepeti İzmir Bölge</title>
     <!-- JsBarcode & PapaParse & HTML5-QRCode Kütüphaneleri -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
@@ -53,11 +53,11 @@
             gap: 16px;
         }
 
-        /* Header / Logo */
+        /* Header / Logo & İzmir Bölge Alanı */
         .app-header {
             background: var(--ys-card);
             border: 1px solid var(--ys-border);
-            padding: 16px 20px;
+            padding: 12px 18px;
             border-radius: 16px;
             display: flex;
             justify-content: space-between;
@@ -65,9 +65,34 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
         }
 
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .brand-logo {
             height: 32px;
             object-fit: contain;
+        }
+
+        .region-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(234, 0, 75, 0.08);
+            border: 1px solid rgba(234, 0, 75, 0.2);
+            border-radius: 20px;
+            color: var(--ys-primary);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .clock-tower-icon {
+            width: 18px;
+            height: 22px;
+            fill: var(--ys-primary);
         }
 
         .header-actions {
@@ -268,9 +293,20 @@
 <body>
 
 <div class="container">
-    <!-- Header / Logo -->
+    <!-- Header / Logo & İzmir Bölge -->
     <div class="app-header">
-        <img class="brand-logo" src="https://lh3.googleusercontent.com/2pv3nFogNN8hnYzMA4QeKE-Rj8mC7YlQPJOxuYJy-EwrVUHuqG-CuF5KaPz0seyugb1EVGmGEEe0JHucp0dDGgVyEvk=s60" alt="Yemeksepeti Partner">
+        <div class="header-brand">
+            <img class="brand-logo" src="https://lh3.googleusercontent.com/2pv3nFogNN8hnYzMA4QeKE-Rj8mC7YlQPJOxuYJy-EwrVUHuqG-CuF5KaPz0seyugb1EVGmGEEe0JHucp0dDGgVyEvk=s60" alt="Yemeksepeti Partner">
+            
+            <!-- İzmir Saat Kulesi İllüstrasyonu ve Bölge İsmi -->
+            <div class="region-badge">
+                <svg class="clock-tower-icon" viewBox="0 0 24 32">
+                    <path d="M12 0L9 4H15L12 0ZM10 5V8H14V5H10ZM8 9L7 12H17L16 9H8ZM9 13V22H15V13H9ZM10 15H14V20H10V15ZM6 23L4 27H20L18 23H6ZM2 28V32H22V28H2Z"/>
+                </svg>
+                <span>İzmir Bölge</span>
+            </div>
+        </div>
+
         <div class="header-actions">
             <button class="btn-theme" onclick="toggleTheme()">🌙 / ☀️</button>
         </div>
@@ -346,7 +382,6 @@
                 if (row && row.length >= 3) {
                     let barcodeVal = row[2] ? row[2].trim() : (row[4] ? row[4].trim() : '');
                     
-                    // Scientific notation düzeltme (8.69E+12 gibi değerler için)
                     if (barcodeVal.includes('E+') || barcodeVal.includes('e+')) {
                         barcodeVal = Number(barcodeVal).toLocaleString('fullwide', {useGrouping:false});
                     }
@@ -422,7 +457,6 @@
         }
     }
 
-    // Barkod Çizim Mantığı
     function renderBarcode(item) {
         playBeep();
         document.getElementById("productList").innerHTML = "";
@@ -434,11 +468,9 @@
 
         if (!cleanBarcode) cleanBarcode = item.activeBarcode;
 
-        // SVG içeriğini sıfırla
         const svgElement = document.getElementById("barcode");
         svgElement.innerHTML = "";
 
-        // Render İşlemi
         setTimeout(() => {
             try {
                 JsBarcode("#barcode", cleanBarcode, {
@@ -453,7 +485,6 @@
                     lineColor: "#000000"
                 });
             } catch (e) {
-                console.warn("CODE128 başarısız, genel mod deneniyor...", e);
                 try {
                     JsBarcode("#barcode", cleanBarcode, {
                         width: 2,
