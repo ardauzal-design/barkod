@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Saha Barkod Okutma</title>
+    <!-- Barkod Çizim & CSV Okuyucu Kütüphaneler -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <style>
@@ -37,8 +38,8 @@
 </div>
 
 <script>
-    // KENDİ GOOGLE SHEETS CSV LİNKİNİZİ BURAYA YAPIŞTIRIN:
-    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/1OnCqXlcTSyeI4dzxOFq1JrS4SHKxIY6eHGvcz-VWZWA/edit?pli=1&gid=0#gid=0";
+    // Tablonuzun Doğrudan CSV Dışa Aktarım Linki Yerleştirildi:
+    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/1OnCqXlcTSyeI4dzxOFq1JrS4SHKxIY6eHGvcz-VWZWA/export?format=csv";
 
     let db = [];
 
@@ -50,13 +51,14 @@
             const rows = results.data;
             db = [];
 
+            // 1. satır başlıklar olduğu için i=1'den başlıyoruz
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
-                if (row.length >= 3) {
+                if (row && row.length >= 3) {
                     db.push({
                         sku_id: row[0] ? row[0].trim() : '',
                         product_name: row[1] ? row[1].trim() : 'İsimsiz Ürün',
-                        barcodes: row[2] ? row[2].trim() : ''
+                        barcodes: row[2] ? row[2].trim() : (row[4] ? row[4].trim() : '')
                     });
                 }
             }
@@ -68,7 +70,7 @@
         },
         error: function() {
             const statusDiv = document.getElementById("status");
-            statusDiv.innerText = "❌ Veri çekilemedi. Bağlantıyı kontrol edin.";
+            statusDiv.innerText = "❌ Veri çekilemedi. Google Sheets paylaşım izinlerini kontrol edin.";
             statusDiv.style.color = "#dc3545";
         }
     });
