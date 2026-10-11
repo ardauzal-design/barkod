@@ -37,19 +37,19 @@
 </div>
 
 <script>
-    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuRh11OY-0Eipupbd3WU4aW73pVOglkOy6pgalD81j7Yr6NY5zkFG9g1ceQJAje6xzkVLZhlwCIfm_3/pub?output=csv";
+    // KENDİ GOOGLE SHEETS CSV LİNKİNİZİ BURAYA YAPIŞTIRIN:
+    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/1OnCqXlcTSyeI4dzxOFq1JrS4SHKxIY6eHGvcz-VWZWA/edit?pli=1&gid=0#gid=0";
 
     let db = [];
 
     Papa.parse(sheetCsvUrl, {
         download: true,
-        header: false, // Header bağımlılığı kaldırıldı
+        header: false,
         skipEmptyLines: true,
         complete: function(results) {
             const rows = results.data;
             db = [];
 
-            // İlk satır başlık olduğu için 1. satırdan başla
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 if (row.length >= 3) {
