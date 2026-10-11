@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saha Barkod Okutma</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body { background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 450px; text-align: center; }
+        .drop-zone {
+            border: 2px dashed #007bff; background: #ffffff; border-radius: 12px;
+            padding: 25px; margin-bottom: 15px; cursor: pointer; transition: 0.2s;
+        }
+        .drop-zone.hover { background: #e7f1ff; border-color: #0056b3; }
+        .search-box { width: 100%; padding: 15px; font-size: 20px; font-weight: bold; text-align: center; border: 2px solid #ccc; border-radius: 10px; margin-bottom: 15px; }
+        .product-card { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #ddd; text-align: left; cursor: pointer; }
+        #barcode-display { display: none; background: white; padding: 15px; border-radius: 10px; margin-top: 15px; }
+        svg { max-width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
+        📄 <b>'Yeni Metin Belgesi.txt'</b> dosyanızı buraya sürükleyin veya tıklayıp seçin.
+    </div>
+    <input type="file" id="fileInput" accept=".txt" style="display:none" onchange="loadFile(this.files[0])">
+
+    <input type="number" id="searchInput" class="search-box" placeholder="Son 5 Haneyi Girin" oninput="onSearch()" disabled>
+    
+    <div id="productList"></div>
+    <div id="barcode-display">
+        <div id="selectedProductName" style="font-weight:bold; margin-bottom:10px;"></div>
+        <svg id="barcode"></svg>
+    </div>
+</div>
+
+<script>
+    let db = [];
+    const dropZone = document.getElementById('dropZone');
+
+    // Sürükle Bırak Olayları
+    ['dragenter', 'dragover'].forEach(name => dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.add('hover'); }));
+    ['dragleave', 'drop'].forEach(name => dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.remove('hover'); }));
+    dropZone.addEventListener('drop', (e) => loadFile(e.dataTransfer.files[0]));
+
+    function loadFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const lines = e.target.result.split('\n');
+            db = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].trim().split('\t');
+                if (cols.length >= 3) {
+                    db.push({ sku: cols[0], name: cols[1], barcodes: cols[2] });
+                }
+            }
+            dropZone.innerHTML = `✅ <b>${db.length} Ürün Yüklendi!</b>`;
+            dropZone.style.borderColor = '#28a745';
+            document.getElementById('searchInput').disabled = false;
+            document.getElementById('searchInput').focus();
+        };
+        reader.readAsText(file, "UTF-8");
+    }
+
+    function onSearch() {
+        const query = document.getElementById("searchInput").value.trim();
+        const listDiv = document.getElementById("productList");
+        const barcodeDisplay = document.getElementById("barcode-display");
+
+        listDiv.innerHTML = "";
+        barcodeDisplay.style.display = "none";
+
+        if (query.length < 3) return;
+
+        let matches = [];
+        db.forEach(item => {
+            if (!item.barcodes) return;
+            item.barcodes.split(',').forEach(b => {
+                if (b.trim().endsWith(query)) {
+                    matches.push({ name: item.name, barcode: b.trim() });
+                }
+            });
+        });
+
+        if (matches.length === 1) {
+            renderBarcode(matches[0]);
+        } else if (matches.length > 1) {
+            matches.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "product-card";
+                card.onclick = () => renderBarcode(item);
+                card.innerHTML = `<b>${item.name}</b><br><small>Barkod: ${item.barcode}</small>`;
+                listDiv.appendChild(card);
+            });
+        }
+    }
+
+    function renderBarcode(item) {
+        document.getElementById("productList").innerHTML = "";
+        document.getElementById("selectedProductName").innerText = item.name;
+        document.getElementById("barcode-display").style.display = "block";
+        JsBarcode("#barcode", item.barcode, { format: "CODE39", width: 2, height: 90, displayValue: true });
+    }
+</script>
+
+</body>
+</html>
